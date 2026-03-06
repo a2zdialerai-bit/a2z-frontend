@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/components/providers";
-import Protected from "@/components/protected";
 
 export const metadata: Metadata = {
   title: "A2Z Dialer",
-  description: "AI outbound calling SaaS for lead generation and appointment booking.",
+  description: "AI-powered outbound calling for real estate professionals.",
+  icons: {
+    icon: "/a2z-logo.png",
+    shortcut: "/a2z-logo.png",
+    apple: "/a2z-logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -15,11 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <Providers>
-          <Protected>{children}</Protected>
-        </Providers>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
