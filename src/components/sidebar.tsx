@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -13,6 +14,8 @@ import {
   PlugZap,
   Settings,
   LogOut,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { clearToken } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -39,21 +42,53 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="border-r border-white/10 bg-[#0b1020]/90 px-4 py-5">
-      <div className="flex h-full flex-col">
-        <div className="mb-8 px-3">
-          <div className="text-xs uppercase tracking-[0.28em] text-blue-300/80">
-            A2Z Dialer
+    <aside className="border-r border-[#e6eefc] bg-white">
+      <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
+        <div className="mb-6 px-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-[#dbe7ff] bg-white shadow-sm">
+              <Image
+                src="/a2z-logo.png"
+                alt="A2Z Dialer logo"
+                width={44}
+                height={44}
+                className="h-11 w-11 object-contain"
+                priority
+              />
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2563eb]">
+                A2Z Dialer
+              </div>
+              <div className="truncate text-lg font-semibold tracking-tight text-[#163b7a]">
+                Outbound OS
+              </div>
+              <div className="mt-0.5 text-xs text-slate-500">
+                AI prospecting workspace
+              </div>
+            </div>
           </div>
-          <div className="mt-2 text-2xl font-semibold tracking-tight">
-            Operations
-          </div>
-          <div className="mt-1 text-sm text-white/45">
-            AI outbound calling console
+
+          <div className="mt-4 rounded-2xl border border-[#dbe7ff] bg-[#f7fbff] px-4 py-3">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#2563eb]">
+              <Sparkles className="h-3.5 w-3.5" />
+              System status
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-[#163b7a]">
+                Campaign engine ready
+              </span>
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            </div>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <div className="mb-3 px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Workspace
+        </div>
+
+        <nav className="flex-1 space-y-1.5">
           {items.map((item) => {
             const Icon = item.icon;
             const active =
@@ -64,22 +99,52 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition",
+                  "group flex items-center justify-between rounded-2xl px-3 py-3 text-sm font-medium transition-all",
                   active
-                    ? "bg-white text-black shadow-lg"
-                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                    ? "bg-[#2563eb] text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)]"
+                    : "text-slate-600 hover:bg-[#f4f8ff] hover:text-[#163b7a]"
                 )}
               >
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
+                <span className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-xl transition",
+                      active
+                        ? "bg-white/15 text-white"
+                        : "bg-[#eef4ff] text-[#2563eb] group-hover:bg-white"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span>{item.label}</span>
+                </span>
+
+                <ChevronRight
+                  className={cn(
+                    "h-4 w-4 transition",
+                    active
+                      ? "text-white/80"
+                      : "text-slate-300 group-hover:text-[#2563eb]"
+                  )}
+                />
               </Link>
             );
           })}
         </nav>
 
+        <div className="mt-6 rounded-[26px] border border-[#e6eefc] bg-[#fbfdff] p-4">
+          <div className="text-sm font-semibold text-[#163b7a]">
+            Prospecting without burnout
+          </div>
+          <p className="mt-1 text-sm leading-6 text-slate-500">
+            Upload leads, launch campaigns, let AI handle the calls, and focus
+            on booked appointments.
+          </p>
+        </div>
+
         <button
           onClick={signOut}
-          className="mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
+          className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-[#e6eefc] bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-[#cfe0ff] hover:bg-[#f7fbff] hover:text-[#163b7a]"
         >
           <LogOut className="h-4 w-4" />
           Sign out

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { fetchDashboard } from "@/lib/api";
 import { formatNumber, formatPercent } from "@/lib/utils";
@@ -15,6 +16,18 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import {
+  ArrowUpRight,
+  CalendarDays,
+  PhoneCall,
+  Target,
+  Users,
+  Activity,
+  CheckCircle2,
+  Workflow,
+  ShieldCheck,
+  ListChecks,
+} from "lucide-react";
 
 type DashboardData = {
   workspace?: {
@@ -57,6 +70,8 @@ const barFallback = [
   { name: "Fri", calls: 110 },
 ];
 
+const outcomeColors = ["#2563eb", "#94a3b8", "#f59e0b", "#22c55e"];
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,77 +83,132 @@ export default function DashboardPage() {
   }, []);
 
   const metrics = data?.metrics || {};
-
   const pieData = useMemo(() => pieFallback, []);
   const barData = useMemo(() => barFallback, []);
 
   return (
     <AppShell
       title="Dashboard"
-      subtitle="Monitor workspace performance, campaign activity, appointments, and outbound calling health."
+      subtitle="Monitor lead flow, campaign performance, connection quality, and appointments from one outbound operating system."
     >
       <div className="space-y-6">
-        <div className="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
+        <section className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#2563eb]">
+                <Activity className="h-3.5 w-3.5" />
+                Live campaign performance
+              </div>
+
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#163b7a]">
+                {data?.workspace?.name
+                  ? `${data.workspace.name} is prospecting`
+                  : "Your outbound engine is running"}
+              </h2>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                Review outreach volume, monitor connection quality, and keep your
+                team focused on the result that matters most: booked appointments.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/app/campaigns"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+              >
+                Launch Campaign
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/app/leads"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe7ff] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbff]"
+              >
+                Review Leads
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
+            icon={<Users className="h-5 w-5" />}
             label="Lead Lists"
             value={formatNumber(metrics.lead_lists)}
-            hint="Uploaded sources"
+            hint="Imported prospecting sources"
           />
           <MetricCard
-            label="Leads"
+            icon={<Target className="h-5 w-5" />}
+            label="Total Leads"
             value={formatNumber(metrics.leads)}
-            hint="Total records"
+            hint="Records available to work"
           />
           <MetricCard
+            icon={<ListChecks className="h-5 w-5" />}
             label="Campaigns"
             value={formatNumber(metrics.campaigns)}
-            hint={`${formatNumber(metrics.active_campaigns)} active`}
+            hint={`${formatNumber(metrics.active_campaigns)} active now`}
           />
           <MetricCard
+            icon={<CalendarDays className="h-5 w-5" />}
             label="Appointments"
             value={formatNumber(metrics.appointments)}
-            hint={`${formatPercent(metrics.appointment_rate)} rate`}
+            hint={`${formatPercent(metrics.appointment_rate)} booking rate`}
           />
-        </div>
+        </section>
 
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-            <div className="mb-5 flex items-center justify-between">
+        <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
+            <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold">Weekly Call Activity</h2>
-                <p className="text-sm text-white/50">
-                  Outbound volume snapshot for your operations view
+                <h3 className="text-lg font-semibold text-[#163b7a]">
+                  Weekly Call Activity
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Outbound volume snapshot across your work week.
                 </p>
               </div>
-              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/55">
-                Live Overview
+              <div className="rounded-full border border-[#dbe7ff] bg-[#f7fbff] px-3 py-1 text-xs font-medium text-slate-600">
+                Live overview
               </div>
             </div>
 
-            <div className="h-[300px]">
+            <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData}>
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.35)" />
-                  <YAxis stroke="rgba(255,255,255,0.35)" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: "#64748b", fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "#64748b", fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
                     contentStyle={{
-                      background: "#0f172a",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "#ffffff",
+                      border: "1px solid #dbe7ff",
                       borderRadius: 16,
-                      color: "#fff",
+                      color: "#0f172a",
+                      boxShadow: "0 10px 30px rgba(21, 59, 122, 0.08)",
                     }}
                   />
-                  <Bar dataKey="calls" radius={[8, 8, 0, 0]} fill="rgba(59,130,246,0.9)" />
+                  <Bar dataKey="calls" radius={[10, 10, 0, 0]} fill="#2563eb" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-            <div className="mb-5">
-              <h2 className="text-lg font-semibold">Call Outcomes</h2>
-              <p className="text-sm text-white/50">
-                Quick view of connection mix and booking share
+          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-[#163b7a]">
+                Call Outcomes
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Quick view of connects, missed conversations, and bookings.
               </p>
             </div>
 
@@ -149,112 +219,169 @@ export default function DashboardPage() {
                     data={pieData}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={60}
-                    outerRadius={95}
+                    innerRadius={62}
+                    outerRadius={96}
                     paddingAngle={4}
                   >
-                    {pieData.map((_, index) => {
-                      const fills = [
-                        "rgba(59,130,246,0.95)",
-                        "rgba(148,163,184,0.65)",
-                        "rgba(245,158,11,0.85)",
-                        "rgba(34,197,94,0.9)",
-                      ];
-                      return <Cell key={index} fill={fills[index % fills.length]} />;
-                    })}
+                    {pieData.map((_, index) => (
+                      <Cell
+                        key={index}
+                        fill={outcomeColors[index % outcomeColors.length]}
+                      />
+                    ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="grid gap-3">
-              {pieData.map((item) => (
+            <div className="mt-4 grid gap-3">
+              {pieData.map((item, index) => (
                 <div
                   key={item.name}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/10 px-4 py-3"
+                  className="flex items-center justify-between rounded-2xl border border-[#e6eefc] bg-[#f7fbff] px-4 py-3"
                 >
-                  <span className="text-sm text-white/70">{item.name}</span>
-                  <span className="text-sm font-medium">{item.value}%</span>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-3 w-3 rounded-full"
+                      style={{
+                        backgroundColor:
+                          outcomeColors[index % outcomeColors.length],
+                      }}
+                    />
+                    <span className="text-sm font-medium text-slate-700">
+                      {item.name}
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold text-[#163b7a]">
+                    {item.value}%
+                  </span>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-            <h2 className="text-lg font-semibold">Workspace Summary</h2>
-            <p className="mt-1 text-sm text-white/50">
-              High-level visibility across pathways, compliance, and activity.
-            </p>
+        <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-[#163b7a]">
+                  Operations Summary
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  High-level visibility across scripts, compliance, and engine health.
+                </p>
+              </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                Healthy
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
               <SummaryBox
-                label="Workspace"
-                value={data?.workspace?.name || "Default Workspace"}
-              />
-              <SummaryBox
+                icon={<Workflow className="h-4 w-4" />}
                 label="Pathways"
                 value={formatNumber(metrics.pathways)}
               />
               <SummaryBox
+                icon={<ShieldCheck className="h-4 w-4" />}
                 label="DNC Entries"
                 value={formatNumber(metrics.dnc_entries)}
               />
               <SummaryBox
+                icon={<PhoneCall className="h-4 w-4" />}
                 label="Connection Rate"
                 value={formatPercent(metrics.connection_rate)}
               />
+              <SummaryBox
+                icon={<Users className="h-4 w-4" />}
+                label="Workspace"
+                value={data?.workspace?.name || "Default Workspace"}
+              />
+            </div>
+
+            <div className="mt-6 grid gap-3">
+              <Link
+                href="/app/pathways"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2563eb] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+              >
+                Review Pathways
+              </Link>
+              <Link
+                href="/app/appointments"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe7ff] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbff]"
+              >
+                Open Appointment Queue
+              </Link>
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-            <h2 className="text-lg font-semibold">Recent Calls</h2>
-            <p className="mt-1 text-sm text-white/50">
-              Most recent activity logged by your backend
-            </p>
+          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-[#163b7a]">
+                  Recent Calls
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Latest activity logged by your backend call engine.
+                </p>
+              </div>
 
-            <div className="mt-5 space-y-3">
-              {(data?.recent_calls?.length ? data.recent_calls : [
-                {
-                  id: 1,
-                  lead_name: "Maria Thompson",
-                  phone: "(555) 202-4455",
-                  outcome: "connected",
-                  created_at: "Just now",
-                },
-                {
-                  id: 2,
-                  lead_name: "David Romero",
-                  phone: "(555) 188-2210",
-                  outcome: "voicemail",
-                  created_at: "5 mins ago",
-                },
-                {
-                  id: 3,
-                  lead_name: "Angela Brooks",
-                  phone: "(555) 444-9987",
-                  outcome: "booked",
-                  created_at: "14 mins ago",
-                },
-              ]).map((call: any) => (
+              <Link
+                href="/app/calls"
+                className="rounded-full border border-[#dbe7ff] bg-[#f7fbff] px-3 py-1 text-xs font-medium text-slate-600 transition hover:bg-white"
+              >
+                View all
+              </Link>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {(data?.recent_calls?.length
+                ? data.recent_calls
+                : [
+                    {
+                      id: 1,
+                      lead_name: "Maria Thompson",
+                      phone: "(555) 202-4455",
+                      outcome: "connected",
+                      created_at: "Just now",
+                    },
+                    {
+                      id: 2,
+                      lead_name: "David Romero",
+                      phone: "(555) 188-2210",
+                      outcome: "voicemail",
+                      created_at: "5 mins ago",
+                    },
+                    {
+                      id: 3,
+                      lead_name: "Angela Brooks",
+                      phone: "(555) 444-9987",
+                      outcome: "booked",
+                      created_at: "14 mins ago",
+                    },
+                  ]
+              ).map((call: any) => (
                 <div
                   key={call.id}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/10 px-4 py-3"
+                  className="flex items-center justify-between rounded-2xl border border-[#e6eefc] bg-[#f7fbff] px-4 py-4"
                 >
-                  <div>
-                    <div className="text-sm font-medium">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-[#163b7a]">
                       {call.lead_name || "Unknown Lead"}
                     </div>
-                    <div className="text-xs text-white/45">
+                    <div className="mt-1 text-xs text-slate-500">
                       {call.phone || "No phone"}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs uppercase tracking-wide text-blue-200">
+
+                  <div className="ml-4 text-right">
+                    <div className="inline-flex items-center gap-1 rounded-full bg-[#eef4ff] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#2563eb]">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
                       {call.outcome || "unknown"}
                     </div>
-                    <div className="text-xs text-white/40">
+                    <div className="mt-2 text-xs text-slate-400">
                       {call.created_at || ""}
                     </div>
                   </div>
@@ -263,38 +390,61 @@ export default function DashboardPage() {
             </div>
 
             {loading ? (
-              <div className="mt-4 text-sm text-white/45">Loading dashboard...</div>
+              <div className="mt-4 text-sm text-slate-500">
+                Loading dashboard...
+              </div>
             ) : null}
           </div>
-        </div>
+        </section>
       </div>
     </AppShell>
   );
 }
 
 function MetricCard({
+  icon,
   label,
   value,
   hint,
 }: {
+  icon: React.ReactNode;
   label: string;
   value: string;
   hint: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-      <div className="text-sm text-white/55">{label}</div>
-      <div className="mt-3 text-3xl font-semibold tracking-tight">{value}</div>
-      <div className="mt-2 text-sm text-white/40">{hint}</div>
+    <div className="rounded-[28px] border border-[#e6eefc] bg-white p-5 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
+      <div className="flex items-center justify-between">
+        <div className="rounded-2xl bg-[#eef4ff] p-3 text-[#2563eb]">{icon}</div>
+        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          Overview
+        </span>
+      </div>
+      <div className="mt-5 text-sm font-medium text-slate-500">{label}</div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight text-[#163b7a]">
+        {value}
+      </div>
+      <div className="mt-2 text-sm text-slate-400">{hint}</div>
     </div>
   );
 }
 
-function SummaryBox({ label, value }: { label: string; value: string }) {
+function SummaryBox({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
-      <div className="text-xs uppercase tracking-wide text-white/35">{label}</div>
-      <div className="mt-2 text-base font-medium">{value}</div>
+    <div className="rounded-2xl border border-[#e6eefc] bg-[#f7fbff] p-4">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+        <span className="text-[#2563eb]">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-2 text-base font-semibold text-[#163b7a]">{value}</div>
     </div>
   );
 }

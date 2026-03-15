@@ -14,12 +14,14 @@ export function AppShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-transparent text-white">
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
+    <div className="min-h-screen bg-[#f8fbff] text-slate-900">
+      <div className="grid min-h-screen lg:grid-cols-[292px_1fr]">
         <Sidebar />
         <div className="min-w-0">
           <TopBar title={title} subtitle={subtitle} />
-          <main className="px-6 pb-8 pt-2">{children}</main>
+          <main className="px-4 pb-8 pt-5 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          </main>
         </div>
       </div>
     </div>
