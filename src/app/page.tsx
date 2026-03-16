@@ -710,7 +710,13 @@ export default function LandingPage() {
             </h2>
 
             <p className="mx-auto max-w-3xl text-xl leading-relaxed text-slate-600">
-              Keep Andi the same. Update Jampa’s player card with the stats you gave.
+              <p className="mx-auto max-w-3xl text-xl leading-relaxed text-slate-600">
+  A2Z territory pages are designed to showcase top-performing agents first, while also
+  giving other agents a way to compete for visibility through premium featured placement.
+  Agents can pay to have their name, business, profile, and player card promoted in the
+  markets they want to win — but top agents with stronger positioning, reviews, and
+  production should remain the most visible.
+</p>
             </p>
           </div>
 
