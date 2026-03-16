@@ -1,450 +1,383 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AppShell } from "@/components/app-shell";
-import { fetchDashboard } from "@/lib/api";
-import { formatNumber, formatPercent } from "@/lib/utils";
 import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
-import {
-  ArrowUpRight,
-  CalendarDays,
-  PhoneCall,
-  Target,
-  Users,
-  Activity,
-  CheckCircle2,
-  Workflow,
+  ArrowRight,
+  BadgeDollarSign,
+  Bot,
+  CalendarCheck,
+  FileCode2,
+  Home,
+  Layers3,
+  MapPinned,
+  Mic2,
   ShieldCheck,
-  ListChecks,
+  Sparkles,
+  Star,
+  Store,
+  Target,
+  Trophy,
+  Users,
+  Workflow,
 } from "lucide-react";
 
-type DashboardData = {
-  workspace?: {
-    id?: number;
-    name?: string;
-  };
-  metrics?: {
-    lead_lists?: number;
-    leads?: number;
-    pathways?: number;
-    campaigns?: number;
-    active_campaigns?: number;
-    call_logs?: number;
-    appointments?: number;
-    dnc_entries?: number;
-    connection_rate?: number;
-    appointment_rate?: number;
-  };
-  recent_calls?: Array<{
-    id: number;
-    lead_name?: string | null;
-    phone?: string | null;
-    outcome?: string | null;
-    created_at?: string | null;
-  }>;
-};
-
-const pieFallback = [
-  { name: "Connected", value: 32 },
-  { name: "No Answer", value: 41 },
-  { name: "Voicemail", value: 17 },
-  { name: "Booked", value: 10 },
+const primaryWorkspaces = [
+  {
+    title: "Campaign Operator",
+    eyebrow: "AI Outbound Engine",
+    description:
+      "Launch campaigns, manage lead lists, monitor live call flow, and turn conversations into booked seller appointments.",
+    href: "/app/campaigns",
+    icon: Bot,
+    accent: "from-blue-600 via-indigo-600 to-violet-600",
+    stats: ["12 active campaigns", "3,421 weekly calls", "48 booked appointments"],
+    cta: "Enter campaign workspace",
+  },
+  {
+    title: "Marketplace Buyer",
+    eyebrow: "Verified Opportunity Access",
+    description:
+      "Search territories, unlock seller opportunities, and buy verified leads or booked appointments by market.",
+    href: "/app/leads",
+    icon: MapPinned,
+    accent: "from-emerald-500 via-teal-500 to-cyan-600",
+    stats: ["29 live opportunities", "Bronx + Queens inventory", "Buyer-ready pipeline"],
+    cta: "Open marketplace buyer view",
+  },
+  {
+    title: "Script Creator",
+    eyebrow: "Pathway + Royalties",
+    description:
+      "Build, validate, convert, and monetize scripts through the pathway engine and creator marketplace.",
+    href: "/app/pathways",
+    icon: FileCode2,
+    accent: "from-violet-600 via-fuchsia-600 to-pink-600",
+    stats: ["18 live pathways", "Validator ready", "Royalty publishing"],
+    cta: "Open script creator view",
+  },
+  {
+    title: "Appointments Desk",
+    eyebrow: "Closer Workflow",
+    description:
+      "Review booked calls, confirm next steps, and keep the scheduling pipeline tight for agents and teams.",
+    href: "/app/appointments",
+    icon: CalendarCheck,
+    accent: "from-amber-500 via-orange-500 to-rose-500",
+    stats: ["48 open appointments", "Follow-up queue", "Calendar-ready handoff"],
+    cta: "Open appointments desk",
+  },
 ];
 
-const barFallback = [
-  { name: "Mon", calls: 84 },
-  { name: "Tue", calls: 121 },
-  { name: "Wed", calls: 98 },
-  { name: "Thu", calls: 144 },
-  { name: "Fri", calls: 110 },
+const secondaryWorkspaces = [
+  {
+    title: "Agent Network",
+    eyebrow: "Top Agent Discovery",
+    description:
+      "Showcase top agents by territory, power player-card style agent profiles, and support premium featured placement.",
+    href: "/app/leads",
+    icon: Trophy,
+    accent: "from-sky-500 via-blue-500 to-indigo-600",
+    stats: ["Bronx agent page", "Featured placement", "Verified public profile data"],
+    cta: "Open agent network",
+  },
+  {
+    title: "Homeowner Intake",
+    eyebrow: "Seller Raise-Hand Flow",
+    description:
+      "Capture direct homeowner interest, score seller readiness, and route submissions into matching, nurturing, or marketplace supply.",
+    href: "/app/leads",
+    icon: Home,
+    accent: "from-orange-500 via-amber-500 to-yellow-500",
+    stats: ["Direct seller intake", "Readiness scoring", "Routing + nurture options"],
+    cta: "Open homeowner flow",
+  },
+  {
+    title: "Admin Autopilot",
+    eyebrow: "Internal Platform Supply",
+    description:
+      "Control inventory generation, pricing, moderation, top-agent assignment, QA, and internal opportunity routing.",
+    href: "/app/settings",
+    icon: Layers3,
+    accent: "from-slate-700 via-slate-800 to-slate-950",
+    stats: ["Inventory controls", "Marketplace QA", "Internal routing"],
+    cta: "Open admin autopilot",
+  },
 ];
 
-const outcomeColors = ["#2563eb", "#94a3b8", "#f59e0b", "#22c55e"];
+const platformSignals = [
+  {
+    label: "Campaign lanes",
+    value: "4",
+  },
+  {
+    label: "Expansion lanes",
+    value: "3",
+  },
+  {
+    label: "Marketplace inventory",
+    value: "29",
+  },
+  {
+    label: "Published pathways",
+    value: "18",
+  },
+];
+
+const bottomFeatures = [
+  {
+    icon: <Mic2 className="h-5 w-5" />,
+    title: "Premium Custom Voice",
+    text: "A branded premium voice layer for agents who want a more personalized calling experience.",
+  },
+  {
+    icon: <ShieldCheck className="h-5 w-5" />,
+    title: "Compliance + DNC",
+    text: "Suppression controls, opt-out handling, and safer outbound workflows must stay visible platform-wide.",
+  },
+  {
+    icon: <Store className="h-5 w-5" />,
+    title: "Lead Marketplace",
+    text: "Unlockable territory-based opportunity inventory with stronger buyer-facing positioning.",
+  },
+  {
+    icon: <Star className="h-5 w-5" />,
+    title: "Premium Positioning",
+    text: "Every lane should feel premium and purpose-built, not like one generic CRM dashboard.",
+  },
+];
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboard()
-      .then((res) => setData(res))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const metrics = data?.metrics || {};
-  const pieData = useMemo(() => pieFallback, []);
-  const barData = useMemo(() => barFallback, []);
-
   return (
-    <AppShell
-      title="Dashboard"
-      subtitle="Monitor lead flow, campaign performance, connection quality, and appointments from one outbound operating system."
-    >
-      <div className="space-y-6">
-        <section className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#2563eb]">
-                <Activity className="h-3.5 w-3.5" />
-                Live campaign performance
-              </div>
-
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#163b7a]">
-                {data?.workspace?.name
-                  ? `${data.workspace.name} is prospecting`
-                  : "Your outbound engine is running"}
-              </h2>
-
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                Review outreach volume, monitor connection quality, and keep your
-                team focused on the result that matters most: booked appointments.
-              </p>
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#eef4ff_38%,#ffffff_100%)] text-slate-900">
+      <section className="border-b border-[#dbe7ff] bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(145deg,#2563eb_0%,#4f46e5_100%)] text-white shadow-lg">
+              <Sparkles className="h-6 w-6" />
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link
-                href="/app/campaigns"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
-              >
-                Launch Campaign
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/app/leads"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe7ff] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbff]"
-              >
-                Review Leads
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            icon={<Users className="h-5 w-5" />}
-            label="Lead Lists"
-            value={formatNumber(metrics.lead_lists)}
-            hint="Imported prospecting sources"
-          />
-          <MetricCard
-            icon={<Target className="h-5 w-5" />}
-            label="Total Leads"
-            value={formatNumber(metrics.leads)}
-            hint="Records available to work"
-          />
-          <MetricCard
-            icon={<ListChecks className="h-5 w-5" />}
-            label="Campaigns"
-            value={formatNumber(metrics.campaigns)}
-            hint={`${formatNumber(metrics.active_campaigns)} active now`}
-          />
-          <MetricCard
-            icon={<CalendarDays className="h-5 w-5" />}
-            label="Appointments"
-            value={formatNumber(metrics.appointments)}
-            hint={`${formatPercent(metrics.appointment_rate)} booking rate`}
-          />
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-[#163b7a]">
-                  Weekly Call Activity
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Outbound volume snapshot across your work week.
-                </p>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563eb]">
+                A2Z Dialer
               </div>
-              <div className="rounded-full border border-[#dbe7ff] bg-[#f7fbff] px-3 py-1 text-xs font-medium text-slate-600">
-                Live overview
+              <div className="mt-1 text-3xl font-semibold tracking-tight text-[#163b7a]">
+                Workspace Selector
               </div>
-            </div>
-
-            <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData}>
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: "#64748b", fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: "#64748b", fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "#ffffff",
-                      border: "1px solid #dbe7ff",
-                      borderRadius: 16,
-                      color: "#0f172a",
-                      boxShadow: "0 10px 30px rgba(21, 59, 122, 0.08)",
-                    }}
-                  />
-                  <Bar dataKey="calls" radius={[10, 10, 0, 0]} fill="#2563eb" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="mt-1 text-sm text-slate-500">
+                Choose the part of the platform you want to operate.
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-[#163b7a]">
-                Call Outcomes
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Quick view of connects, missed conversations, and bookings.
+          <div className="hidden items-center gap-3 md:flex">
+            <div className="rounded-full border border-[#dbe7ff] bg-white px-4 py-2 text-sm font-medium text-slate-600">
+              Multi-lane seller opportunity OS
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <section className="relative overflow-hidden rounded-[38px] border border-[#dbe7ff] bg-[linear-gradient(135deg,#0f172a_0%,#153b7a_35%,#2563eb_72%,#7c3aed_100%)] p-8 text-white shadow-[0_28px_80px_rgba(37,99,235,0.18)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.10),transparent_18%)]" />
+
+          <div className="relative z-10 grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
+                <Sparkles className="h-4 w-4" />
+                Choose your operating lane
+              </div>
+
+              <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight md:text-6xl">
+                This page should route people
+                <br />
+                into the right workspace.
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-blue-100/85 md:text-base">
+                A2Z is not one dashboard for everyone. Campaign operators, buyers,
+                script creators, closers, agent-network users, homeowners, and admins
+                should each enter a purpose-built workspace with its own navigation
+                and dashboard.
               </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <HeroPill text="Campaign engine" />
+                <HeroPill text="Marketplace buyer flow" />
+                <HeroPill text="Top-agent network" />
+                <HeroPill text="Homeowner raise-hand flow" />
+              </div>
             </div>
 
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={62}
-                    outerRadius={96}
-                    paddingAngle={4}
-                  >
-                    {pieData.map((_, index) => (
-                      <Cell
-                        key={index}
-                        fill={outcomeColors[index % outcomeColors.length]}
-                      />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="mt-4 grid gap-3">
-              {pieData.map((item, index) => (
-                <div
-                  key={item.name}
-                  className="flex items-center justify-between rounded-2xl border border-[#e6eefc] bg-[#f7fbff] px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="h-3 w-3 rounded-full"
-                      style={{
-                        backgroundColor:
-                          outcomeColors[index % outcomeColors.length],
-                      }}
-                    />
-                    <span className="text-sm font-medium text-slate-700">
-                      {item.name}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-[#163b7a]">
-                    {item.value}%
-                  </span>
-                </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {platformSignals.map((item) => (
+                <GlassStat key={item.label} label={item.label} value={item.value} />
               ))}
             </div>
           </div>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-[#163b7a]">
-                  Operations Summary
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  High-level visibility across scripts, compliance, and engine health.
-                </p>
-              </div>
-
-              <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                Healthy
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <SummaryBox
-                icon={<Workflow className="h-4 w-4" />}
-                label="Pathways"
-                value={formatNumber(metrics.pathways)}
-              />
-              <SummaryBox
-                icon={<ShieldCheck className="h-4 w-4" />}
-                label="DNC Entries"
-                value={formatNumber(metrics.dnc_entries)}
-              />
-              <SummaryBox
-                icon={<PhoneCall className="h-4 w-4" />}
-                label="Connection Rate"
-                value={formatPercent(metrics.connection_rate)}
-              />
-              <SummaryBox
-                icon={<Users className="h-4 w-4" />}
-                label="Workspace"
-                value={data?.workspace?.name || "Default Workspace"}
-              />
-            </div>
-
-            <div className="mt-6 grid gap-3">
-              <Link
-                href="/app/pathways"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2563eb] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
-              >
-                Review Pathways
-              </Link>
-              <Link
-                href="/app/appointments"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe7ff] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbff]"
-              >
-                Open Appointment Queue
-              </Link>
-            </div>
+        <section className="mt-8">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold tracking-tight text-[#163b7a]">
+              Core workspaces
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              These are the main product areas people will enter most often.
+            </p>
           </div>
 
-          <div className="rounded-[32px] border border-[#e6eefc] bg-white p-6 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-[#163b7a]">
-                  Recent Calls
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Latest activity logged by your backend call engine.
-                </p>
-              </div>
-
-              <Link
-                href="/app/calls"
-                className="rounded-full border border-[#dbe7ff] bg-[#f7fbff] px-3 py-1 text-xs font-medium text-slate-600 transition hover:bg-white"
-              >
-                View all
-              </Link>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {(data?.recent_calls?.length
-                ? data.recent_calls
-                : [
-                    {
-                      id: 1,
-                      lead_name: "Maria Thompson",
-                      phone: "(555) 202-4455",
-                      outcome: "connected",
-                      created_at: "Just now",
-                    },
-                    {
-                      id: 2,
-                      lead_name: "David Romero",
-                      phone: "(555) 188-2210",
-                      outcome: "voicemail",
-                      created_at: "5 mins ago",
-                    },
-                    {
-                      id: 3,
-                      lead_name: "Angela Brooks",
-                      phone: "(555) 444-9987",
-                      outcome: "booked",
-                      created_at: "14 mins ago",
-                    },
-                  ]
-              ).map((call: any) => (
-                <div
-                  key={call.id}
-                  className="flex items-center justify-between rounded-2xl border border-[#e6eefc] bg-[#f7fbff] px-4 py-4"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-[#163b7a]">
-                      {call.lead_name || "Unknown Lead"}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {call.phone || "No phone"}
-                    </div>
-                  </div>
-
-                  <div className="ml-4 text-right">
-                    <div className="inline-flex items-center gap-1 rounded-full bg-[#eef4ff] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#2563eb]">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      {call.outcome || "unknown"}
-                    </div>
-                    <div className="mt-2 text-xs text-slate-400">
-                      {call.created_at || ""}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {loading ? (
-              <div className="mt-4 text-sm text-slate-500">
-                Loading dashboard...
-              </div>
-            ) : null}
+          <div className="grid gap-6 xl:grid-cols-2">
+            {primaryWorkspaces.map((card) => (
+              <WorkspaceCard key={card.title} {...card} />
+            ))}
           </div>
+        </section>
+
+        <section className="mt-10">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold tracking-tight text-[#163b7a]">
+              Expansion and platform lanes
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              These complete the memo vision beyond only outbound dialing.
+            </p>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-3">
+            {secondaryWorkspaces.map((card) => (
+              <WorkspaceCard key={card.title} compact {...card} />
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-10 grid gap-4 md:grid-cols-4">
+          {bottomFeatures.map((item) => (
+            <BottomCard
+              key={item.title}
+              icon={item.icon}
+              title={item.title}
+              text={item.text}
+            />
+          ))}
         </section>
       </div>
-    </AppShell>
+    </main>
   );
 }
 
-function MetricCard({
-  icon,
-  label,
-  value,
-  hint,
+function WorkspaceCard({
+  title,
+  eyebrow,
+  description,
+  href,
+  icon: Icon,
+  accent,
+  stats,
+  cta,
+  compact = false,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  hint: string;
+  title: string;
+  eyebrow: string;
+  description: string;
+  href: string;
+  icon: any;
+  accent: string;
+  stats: string[];
+  cta: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="rounded-[28px] border border-[#e6eefc] bg-white p-5 shadow-[0_10px_30px_rgba(21,59,122,0.05)]">
-      <div className="flex items-center justify-between">
-        <div className="rounded-2xl bg-[#eef4ff] p-3 text-[#2563eb]">{icon}</div>
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-          Overview
-        </span>
+    <Link
+      href={href}
+      className="group relative overflow-hidden rounded-[34px] border border-[#e6eefc] bg-white p-6 shadow-[0_14px_40px_rgba(21,59,122,0.06)] transition hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(21,59,122,0.10)]"
+    >
+      <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent}`} />
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div
+            className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${accent} text-white shadow-lg`}
+          >
+            <Icon className="h-7 w-7" />
+          </div>
+
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              {eyebrow}
+            </div>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-[#163b7a]">
+              {title}
+            </h3>
+          </div>
+        </div>
+
+        <ArrowRight className="h-5 w-5 text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#2563eb]" />
       </div>
-      <div className="mt-5 text-sm font-medium text-slate-500">{label}</div>
-      <div className="mt-2 text-3xl font-semibold tracking-tight text-[#163b7a]">
-        {value}
+
+      <p className="mt-5 text-sm leading-7 text-slate-500">{description}</p>
+
+      <div className={`mt-5 grid gap-3 ${compact ? "grid-cols-1" : "sm:grid-cols-3"}`}>
+        {stats.map((stat) => (
+          <div
+            key={stat}
+            className="rounded-2xl border border-[#e6eefc] bg-[linear-gradient(145deg,#ffffff_0%,#f7fbff_100%)] px-4 py-4 text-sm font-medium text-slate-700"
+          >
+            {stat}
+          </div>
+        ))}
       </div>
-      <div className="mt-2 text-sm text-slate-400">{hint}</div>
+
+      <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0f172a] px-4 py-3 text-sm font-semibold text-white transition group-hover:bg-[#2563eb]">
+        {cta}
+        <ArrowRight className="h-4 w-4" />
+      </div>
+    </Link>
+  );
+}
+
+function HeroPill({ text }: { text: string }) {
+  return (
+    <div className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-blue-100 backdrop-blur">
+      {text}
     </div>
   );
 }
 
-function SummaryBox({
-  icon,
+function GlassStat({
   label,
   value,
 }: {
-  icon: React.ReactNode;
   label: string;
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[#e6eefc] bg-[#f7fbff] p-4">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-        <span className="text-[#2563eb]">{icon}</span>
+    <div className="rounded-[24px] border border-white/15 bg-white/10 p-4 backdrop-blur">
+      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-100/70">
         {label}
       </div>
-      <div className="mt-2 text-base font-semibold text-[#163b7a]">{value}</div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function BottomCard({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-[28px] border border-[#e6eefc] bg-white p-5 shadow-[0_14px_40px_rgba(21,59,122,0.05)]">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2563eb]">
+        {icon}
+      </div>
+      <h4 className="mt-4 text-lg font-semibold text-[#163b7a]">{title}</h4>
+      <p className="mt-2 text-sm leading-7 text-slate-500">{text}</p>
     </div>
   );
 }
